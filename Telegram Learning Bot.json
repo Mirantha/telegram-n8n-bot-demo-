@@ -1,0 +1,603 @@
+{
+  "name": "Telegram Learning Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -912,
+        -416
+      ],
+      "id": "6a4a8fc4-81fe-4e88-ae54-89acf398cf78",
+      "name": "Telegram Trigger",
+      "webhookId": "03280da0-76ff-44c6-bda0-9968c0f83658",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "ආයුබෝවන්! 👋 මම ඔයාගේ පළවෙනි n8n bot එක.     \n\nAvailable commands:   \n/start - Bot එක ගැන    \n/help - උදව්    \n/menu - Options බලන්න",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        -528
+      ],
+      "id": "fd813ead-580f-47a8-82ac-5827a1b1b26d",
+      "name": "Send a text message",
+      "webhookId": "49a253c0-0510-48cf-af11-0dac55cef7bd",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "58ff63ed-a3ca-4f6c-b33a-d81fc29e8a3c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "start"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "dce83bcf-3712-46e7-b42c-a95d14765b6c",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "help"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7d6f60ee-952e-404b-8ae7-cc5183bd4575",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "menu"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5f95db59-d075-4815-ba8c-4e5ccdc48937",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "weather",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "weather"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8ccbe23f-412d-45f2-932a-855d102e4db7",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "articles",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "articles"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6091cd09-625c-4244-ae6e-f517aa2136d3",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "contact",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "contact"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -528,
+        -480
+      ],
+      "id": "f33433eb-ac38-4064-ab8c-6e0359f5f04d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "මට උදව් ඕන නම්:    \n\n/menu - options list එක බලන්න   \n/start - bot එක restart කරන්න",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        -464
+      ],
+      "id": "515856e9-bfe5-4b00-8e31-a7d3c4aaf235",
+      "name": "Send a text message1",
+      "webhookId": "8ff26472-b89e-4e95-bd88-56a36a128d92",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "📋 Menu:   \n\n 1. Weather check   \n 2. Latest wikimess.com articles    \n3. Contact info",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🌤️ Weather",
+                    "additionalFields": {
+                      "callback_data": "weather"
+                    }
+                  },
+                  {
+                    "text": "📰 Articles",
+                    "additionalFields": {
+                      "callback_data": "articles"
+                    }
+                  },
+                  {
+                    "text": "📞 Contact",
+                    "additionalFields": {
+                      "callback_data": "contact"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        -352
+      ],
+      "id": "02261166-7166-4d90-a9ec-e1016bb51a48",
+      "name": "Send a text message2",
+      "webhookId": "4833d4e2-cf2c-4787-871f-0656ad3ea340",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "=🌤️ Weather Update:\nTemperature: {{ $('HTTP Request').item.json.current_weather.temperature }}°C\nWind Speed: {{ $('HTTP Request').item.json.current_weather.windspeed }} km/h",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        -192
+      ],
+      "id": "c1b01ade-56b3-41ff-81f8-940eba92f2e2",
+      "name": "Send a text message3",
+      "webhookId": "79cbf8e7-7588-4be5-8fce-fbd10e9da06c",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "📰 Latest articles: wikimess.com/articles",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        16
+      ],
+      "id": "d7b10e0b-671a-4301-a8e9-62aaa752b022",
+      "name": "Send a text message4",
+      "webhookId": "3f7fe2ba-5441-456a-844e-ee36793b3ff6",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "📞 Contact: your-email@example.com",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        128
+      ],
+      "id": "6fc14041-d9c4-4f36-ae3b-5be952e17987",
+      "name": "Send a text message5",
+      "webhookId": "ab8932f8-b4a2-48ac-9d87-972e89999031",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $('Telegram Trigger').item.json.callback_query.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        -176
+      ],
+      "id": "97234a6e-8882-4879-a7ad-9de7c0dd2cee",
+      "name": "Answer Query a callback",
+      "webhookId": "eb4a31c5-f3a5-4e4d-b330-b1e6e5d1c97f",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $('Telegram Trigger').item.json.callback_query.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        16
+      ],
+      "id": "67981a89-769b-4d7d-9cd2-6d52e612b49a",
+      "name": "Answer Query a callback1",
+      "webhookId": "ca951e22-3cfd-42ea-8ed6-b8ef1e0caa32",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $('Telegram Trigger').item.json.callback_query.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -368,
+        -48
+      ],
+      "id": "99d1e705-5c05-4e37-b65d-2787aebf5716",
+      "name": "Answer Query a callback2",
+      "webhookId": "20cc6786-67bd-4800-9f3d-ebf795cf4ec4",
+      "credentials": {
+        "telegramApi": {
+          "id": "yj8ycy2KcsIcIC8L",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=6.9&longitude=79.9&current_weather=true",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -112,
+        -176
+      ],
+      "id": "7201348d-c2e6-48e8-a5ff-159ab5641c02",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst staticData = $getWorkflowStaticData('global');\n\nif (!staticData.processedCallbacks) {\n  staticData.processedCallbacks = {};\n}\n\nconst now = Date.now();\nconst output = [];\n\nfor (const item of items) {\n  const cq = item.json.callback_query;\n  let isDuplicate = false;\n\n  if (cq && cq.id) {\n    if (staticData.processedCallbacks[cq.id]) {\n      isDuplicate = true;\n    } else {\n      staticData.processedCallbacks[cq.id] = now;\n    }\n  }\n\n  if (!isDuplicate) {\n    output.push(item);\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        -416
+      ],
+      "id": "283ec009-ce0b-4e0d-be26-675af976bb75",
+      "name": "Code in JavaScript",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Answer Query a callback1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Answer Query a callback2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        []
+      ]
+    },
+    "Send a text message4": {
+      "main": [
+        []
+      ]
+    },
+    "Send a text message5": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Answer Query a callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Query a callback2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Query a callback": {
+      "main": [
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Query a callback1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6dfe0db3-6de7-4320-88cd-4905442f25d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1f74b57214d669cb3d0e19fd93761554aeef6f809873f0b827d978cc65e1fcfd"
+  },
+  "nodeGroups": [],
+  "id": "Hi22Xq38PxPtyu3W",
+  "tags": []
+}

@@ -1,140 +1,116 @@
-# 🤖 Telegram Bot Automation with n8n
+# Telegram Learning Bot (n8n + Telegram Bot API)
 
-A no-code/low-code Telegram bot built using **n8n**, featuring command-based responses, inline keyboard buttons, and callback query handling. This project was built as a hands-on learning exercise in workflow automation, webhook integration, and conditional logic design.
+A Telegram bot built entirely with [n8n](https://n8n.io) workflow automation, featuring command handling, inline keyboard buttons, and live weather data from an external API. Built as a hands-on learning project to explore n8n's Telegram integration, webhook handling, and HTTP Request nodes.
 
-![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
-![Telegram](https://img.shields.io/badge/Telegram_Bot_API-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+## 🚀 Features
 
----
-
-## 📋 Overview
-
-This bot demonstrates a complete automation workflow that:
-- Responds to Telegram commands (`/start`, `/help`, `/menu`)
-- Displays an interactive inline keyboard menu
-- Handles button click events (callback queries) with dedicated responses
-- Routes different message types through conditional logic
-
-Built entirely in **n8n**, running locally and exposed to the internet via **ngrok** for webhook testing.
-
----
-
-## ✨ Features
-
-| Feature | Description |
-|---|---|
-| 🔤 Command Handling | Recognizes `/start`, `/help`, and `/menu` text commands |
-| 🔘 Inline Keyboard | Interactive buttons (Weather, Articles, Contact) attached to the menu message |
-| 🔄 Callback Query Routing | Separate logic path for button clicks vs. text messages |
-| 🧠 Conditional Logic | Uses n8n's Switch node with 6 routing rules to direct traffic |
-| ✅ Callback Acknowledgment | Clears Telegram's button loading state after each click |
-
----
+- **Command handling**: `/start`, `/help`, `/menu`
+- **Inline keyboard buttons**: Weather, Articles, Contact
+- **Live weather data**: Pulled from the [Open-Meteo API](https://open-meteo.com/) via an HTTP Request node
+- **Duplicate callback protection**: Custom dedupe logic to handle Telegram's callback query retries
+- **Local development**: Runs on `npx n8n` with ngrok for public webhook exposure
 
 ## 🏗️ Architecture
 
 ```
-Telegram Trigger (Message + Callback Query)
-        │
-        ▼
-   Switch Node (Rules)
-   ├── /start   → Welcome message
-   ├── /help    → Help message
-   ├── /menu    → Menu message with inline buttons
-   ├── weather  → Weather reply + Answer Callback Query
-   ├── articles → Articles reply + Answer Callback Query
-   └── contact  → Contact reply + Answer Callback Query
+Telegram Trigger → Code (Dedupe Filter) → Switch (Rules)
+                                              ├─ start   → Send Message
+                                              ├─ help    → Send Message
+                                              ├─ menu    → Send Message
+                                              ├─ weather → Answer Callback → HTTP Request → Send Message
+                                              ├─ articles→ Answer Callback → Send Message
+                                              └─ contact → Answer Callback → Send Message
 ```
 
-The workflow uses a **single Telegram Trigger** node configured to listen for both `message` and `callback_query` update types (Telegram restricts each bot to one trigger at a time), then routes all events through one Switch node.
+**Key design decision**: Callback queries are answered (acknowledged) *before* the reply message is sent, to avoid Telegram's "expired callback" errors during slower response times.
 
----
-
-## 🛠️ Tech Stack
-
-- **n8n** (self-hosted via `npx n8n`) — workflow automation engine
-- **Telegram Bot API** — messaging platform
-- **ngrok** — secure tunnel for exposing local webhooks during development
-- **Node.js** — runtime for n8n
-
----
-
-## 🚀 Setup Instructions
+## 🛠️ Setup
 
 ### Prerequisites
 - Node.js installed
 - A Telegram account
-- [ngrok](https://ngrok.com/) account (free tier works)
+- [ngrok](https://ngrok.com/) (free tier works)
 
-### 1. Create a Telegram Bot
-1. Open Telegram and search for **@BotFather**
-2. Send `/newbot` and follow the prompts
-3. Copy the **API token** you receive
+### Steps
 
-### 2. Run n8n Locally
-```bash
-npx n8n
+1. **Install and run n8n locally**
+   ```bash
+   npx n8n
+   ```
+   n8n will be available at `http://localhost:5678`
+
+2. **Create a Telegram bot**
+   - Message [@BotFather](https://t.me/BotFather) on Telegram
+   - Run `/newbot` and follow the prompts
+   - Save the API token you receive
+
+3. **Expose n8n publicly with ngrok**
+   ```bash
+   ngrok http 5678
+   ```
+   Copy the generated `https://xxxx.ngrok-free.app` forwarding URL.
+
+4. **Set the webhook URL and restart n8n**
+   ```bash
+   # PowerShell
+   $env:WEBHOOK_URL="https://xxxx.ngrok-free.app/"
+   npx n8n
+   ```
+
+5. **Add Telegram credentials in n8n**
+   - Go to Credentials → New → Telegram API
+   - Paste your bot token from BotFather
+
+6. **Import/build the workflow** and set the Telegram Trigger to listen for `message` and `callback_query` updates.
+
+7. **Publish the workflow** in n8n so the webhook goes live.
+
+## 🐛 Debugging Notes (Real Issues Faced & Fixed)
+
+This project involved several real-world debugging challenges — documented here for future reference:
+
+### 1. ngrok + localhost limitation
+Telegram requires a public HTTPS URL for webhooks; `localhost` doesn't work. Solved by tunneling with ngrok and setting the `WEBHOOK_URL` environment variable before starting n8n.
+
+### 2. Case-sensitive callback_data
+Switch node rules checked `Weather`/`Contact` (capitalized) but the actual `callback_data` sent by the inline keyboard was lowercase (`weather`/`contact`). Found by inspecting raw JSON in the execution data.
+
+### 3. "Bad request — please check your parameters" on Answer Callback Query
+Caused by Telegram re-sending the same `callback_query` update when the webhook response was slow (due to ngrok latency), resulting in the same `callback_query.id` being answered twice — which Telegram rejects on the second attempt.
+
+**Fix**: Added a Code node between the Telegram Trigger and the Switch node that tracks processed `callback_query.id` values in workflow static data and silently drops duplicates within a 5-minute window.
+
+### 4. n8n test-listener vs. production webhook conflict
+n8n cannot run a Telegram Trigger in both "test" (manual execute) and "production" (published) listening modes simultaneously. Testing nodes manually while the workflow was published caused webhook requests to be silently dropped. **Fix**: avoid manually executing nodes while the bot is live; unpublish/republish after any node testing.
+
+### 5. Expression scoping after reordering nodes
+After moving "Answer Callback Query" before "Send Message" in the weather branch, `{{ $json.current_weather.temperature }}` returned empty because `$json` refers to the *immediately preceding* node's output, and node order had shifted. **Fix**: used explicit node references instead of relying on `$json`:
 ```
-Open `http://localhost:5678` and complete the owner account setup.
-
-### 3. Expose n8n with ngrok
-```bash
-ngrok http 5678
-```
-Copy the generated HTTPS forwarding URL.
-
-### 4. Set the Webhook URL and Restart n8n
-```bash
-set WEBHOOK_URL=https://your-ngrok-url.ngrok-free.dev/
-npx n8n
+{{ $('HTTP Request').item.json.current_weather.temperature }}
 ```
 
-### 5. Import the Workflow
-1. In n8n, create a new workflow
-2. Import `workflow.json` (included in this repo)
-3. Add your Telegram credential using the BotFather token
-4. Click **Publish**
+### 6. Expression mode not enabled on text fields
+Typing `{{ }}` into a field without toggling it to "Expression" mode causes n8n to treat it as literal text. Always confirm the field is switched from **Fixed** to **Expression** before entering dynamic values.
 
-### 6. Test It
-Message your bot on Telegram with `/start`, `/help`, or `/menu`.
+## 📌 Known Limitations
 
----
-
-## 🐛 Debugging Notes (Lessons Learned)
-
-A key issue encountered during development: the Switch node routing rules for button clicks were checking for `Weather`, `Articles`, and `Contact` (capitalized), while Telegram's actual `callback_data` payload returned lowercase values (`weather`, `articles`, `contact`). Since n8n's equality check is case-sensitive, no rule matched and the workflow silently produced no output.
-
-**Fix:** Inspected the raw JSON in the node's execution data to find the exact `callback_data` values, then corrected the routing rules to match exactly.
-
-This highlights a useful debugging pattern for n8n: when a Switch/IF node produces no output, check the **execution's JSON input data** for the exact field values before assuming a logic error elsewhere.
-
----
-
-## 📸 Demo
-
-*(Add a screenshot or screen recording of the bot in action here)*
-
----
+- Runs on the free ngrok tier, which has session limits and occasional disconnects — not suitable for production use as-is.
+- No persistent database; all state (e.g., dedupe tracking) lives in workflow static data and resets if n8n restarts.
 
 ## 🔮 Future Improvements
 
-- [ ] Integrate a live weather API via HTTP Request node
-- [ ] Pull latest articles dynamically from [wikimess.com](https://wikimess.com)
-- [ ] Log all user interactions to Google Sheets
-- [ ] Add error-handling workflow with admin alerts
-- [ ] Deploy on a persistent host (VPS) instead of ngrok for production use
+- [ ] Replace ngrok with a stable tunnel (Cloudflare Tunnel) or deploy n8n on a VPS/cPanel for a permanent public URL
+- [ ] Move to n8n Cloud or self-hosted production deployment
+- [ ] Add more commands and richer inline keyboard menus
+- [ ] Store user interactions in a database for analytics
+
+## 🧰 Tech Stack
+
+- [n8n](https://n8n.io) — workflow automation
+- [Telegram Bot API](https://core.telegram.org/bots/api)
+- [Open-Meteo API](https://open-meteo.com/) — weather data
+- [ngrok](https://ngrok.com/) — local tunnel for webhook testing
 
 ---
 
-## 👤 Author
-
-**Mira** — Full-stack developer (PHP/WordPress) & freelancer
-- Portfolio: [creativeidea.lk](https://creativeidea.lk)
-- Project: [wikimess.com](https://wikimess.com)
-
----
-
-## 📄 License
-
-This project is open for learning purposes. Feel free to fork and adapt.
+Built as a learning project by Mira ([Creative Idea](https://creativeidea.lk)).
